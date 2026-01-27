@@ -34,7 +34,7 @@ export default class GameScene extends Phaser.Scene {
 
     preload() {
         // Load assets
-        const assetPath = 'kenney_space-shooter-redux/PNG/';
+        const assetPath = '/kenney_space-shooter-redux/PNG/';
 
         // Player ship
         this.load.image('player', assetPath + 'playerShip1_blue.png');
