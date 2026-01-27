@@ -51,9 +51,15 @@ Open [http://localhost:5173](http://localhost:5173) in your browser.
 
 ## Controls
 
+### Desktop
 - **Arrow Keys / WASD**: Move player ship
 - **Space**: Fire lasers (auto-fire)
 - **ESC**: Pause game
+
+### Mobile
+- **Touch/Drag**: Move player ship to touch position
+- **Pause Button**: Tap the pause button (| |) in the top-right corner
+- **Auto-fire**: Lasers fire automatically
 
 ## Credits
 

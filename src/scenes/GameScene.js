@@ -117,6 +117,28 @@ export default class GameScene extends Phaser.Scene {
             this.scene.launch('PauseScene');
         });
 
+        // Mobile touch controls
+        this.touchActive = false;
+        this.touchPosition = { x: 0, y: 0 };
+
+        this.input.on('pointerdown', (pointer) => {
+            this.touchActive = true;
+            this.touchPosition.x = pointer.x;
+            this.touchPosition.y = pointer.y;
+        });
+
+        this.input.on('pointermove', (pointer) => {
+            if (this.touchActive || pointer.isDown) {
+                this.touchActive = true;
+                this.touchPosition.x = pointer.x;
+                this.touchPosition.y = pointer.y;
+            }
+        });
+
+        this.input.on('pointerup', () => {
+            this.touchActive = false;
+        });
+
         // Create groups
         this.playerLasers = this.physics.add.group();
         this.enemies = this.physics.add.group();
@@ -231,18 +253,34 @@ export default class GameScene extends Phaser.Scene {
         // Reset velocity
         this.player.setVelocity(0);
 
-        // Horizontal movement
-        if (this.cursors.left.isDown || this.wasd.left.isDown) {
-            this.player.setVelocityX(-speed);
-        } else if (this.cursors.right.isDown || this.wasd.right.isDown) {
-            this.player.setVelocityX(speed);
-        }
+        // Touch/pointer controls (mobile)
+        if (this.touchActive) {
+            const dx = this.touchPosition.x - this.player.x;
+            const dy = this.touchPosition.y - this.player.y;
+            const distance = Math.sqrt(dx * dx + dy * dy);
 
-        // Vertical movement
-        if (this.cursors.up.isDown || this.wasd.up.isDown) {
-            this.player.setVelocityY(-speed);
-        } else if (this.cursors.down.isDown || this.wasd.down.isDown) {
-            this.player.setVelocityY(speed);
+            // Only move if touch is far enough from player (dead zone)
+            if (distance > 20) {
+                // Normalize and apply speed
+                const velocityX = (dx / distance) * speed;
+                const velocityY = (dy / distance) * speed;
+                this.player.setVelocity(velocityX, velocityY);
+            }
+        } else {
+            // Keyboard controls (desktop)
+            // Horizontal movement
+            if (this.cursors.left.isDown || this.wasd.left.isDown) {
+                this.player.setVelocityX(-speed);
+            } else if (this.cursors.right.isDown || this.wasd.right.isDown) {
+                this.player.setVelocityX(speed);
+            }
+
+            // Vertical movement
+            if (this.cursors.up.isDown || this.wasd.up.isDown) {
+                this.player.setVelocityY(-speed);
+            } else if (this.cursors.down.isDown || this.wasd.down.isDown) {
+                this.player.setVelocityY(speed);
+            }
         }
     }
 
