@@ -37,12 +37,13 @@ export default class HUD {
     }
 
     createLifeIcons() {
-        const startX = this.gameWidth - 90;
-        for (let i = 0; i < 3; i++) {
+        const startX = this.gameWidth - 146;
+        for (let i = 0; i < 5; i++) {
             const icon = this.scene.add.image(startX + (i * 28), 28, 'lifeIcon');
             icon.setScale(0.35);
             icon.setScrollFactor(0);
             icon.setDepth(100);
+            icon.setVisible(i < 3); // Start with 3 lives visible
             this.lifeIcons.push(icon);
         }
     }

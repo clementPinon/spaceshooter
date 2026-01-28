@@ -3,7 +3,8 @@ import Phaser from 'phaser';
 export const PowerUpType = {
     SHIELD: 'shield',
     RAPID_FIRE: 'rapidFire',
-    SPREAD_SHOT: 'spreadShot'
+    SPREAD_SHOT: 'spreadShot',
+    EXTRA_LIFE: 'extraLife'
 };
 
 export default class PowerUp extends Phaser.Physics.Arcade.Sprite {
@@ -11,7 +12,8 @@ export default class PowerUp extends Phaser.Physics.Arcade.Sprite {
         const textureMap = {
             [PowerUpType.SHIELD]: 'powerupShield',
             [PowerUpType.RAPID_FIRE]: 'powerupRapidFire',
-            [PowerUpType.SPREAD_SHOT]: 'powerupSpreadShot'
+            [PowerUpType.SPREAD_SHOT]: 'powerupSpreadShot',
+            [PowerUpType.EXTRA_LIFE]: 'powerupExtraLife'
         };
 
         super(scene, x, y, textureMap[type]);
@@ -39,7 +41,11 @@ export default class PowerUp extends Phaser.Physics.Arcade.Sprite {
     }
 
     static getRandomType() {
-        const types = Object.values(PowerUpType);
+        // Extra life is rarer (10% chance), other types share the rest equally
+        if (Phaser.Math.Between(1, 100) <= 10) {
+            return PowerUpType.EXTRA_LIFE;
+        }
+        const types = [PowerUpType.SHIELD, PowerUpType.RAPID_FIRE, PowerUpType.SPREAD_SHOT];
         return Phaser.Math.RND.pick(types);
     }
 }

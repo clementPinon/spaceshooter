@@ -66,6 +66,7 @@ export default class GameScene extends Phaser.Scene {
         this.load.image('powerupShield', assetPath + 'Power-ups/powerupBlue_shield.png');
         this.load.image('powerupRapidFire', assetPath + 'Power-ups/powerupRed_bolt.png');
         this.load.image('powerupSpreadShot', assetPath + 'Power-ups/powerupGreen_star.png');
+        this.load.image('powerupExtraLife', assetPath + 'Power-ups/pill_green.png');
 
         // Effects - Load explosion frames
         for (let i = 0; i <= 14; i++) {
@@ -492,7 +493,8 @@ export default class GameScene extends Phaser.Scene {
         const textureMap = {
             [PowerUpType.SHIELD]: 'powerupShield',
             [PowerUpType.RAPID_FIRE]: 'powerupRapidFire',
-            [PowerUpType.SPREAD_SHOT]: 'powerupSpreadShot'
+            [PowerUpType.SPREAD_SHOT]: 'powerupSpreadShot',
+            [PowerUpType.EXTRA_LIFE]: 'powerupExtraLife'
         };
 
         // Add random offset to prevent overlapping (30-50 pixels in random direction)
@@ -530,8 +532,16 @@ export default class GameScene extends Phaser.Scene {
         const type = powerUp.powerUpType;
         powerUp.destroy();
 
-        // Activate power-up
-        this.activatePowerUp(type);
+        if (type === PowerUpType.EXTRA_LIFE) {
+            // Grant extra life (max 5)
+            if (this.lives < 5) {
+                this.lives++;
+                this.hud.updateLives(this.lives);
+            }
+        } else {
+            // Activate timed power-up
+            this.activatePowerUp(type);
+        }
 
         // Add score bonus
         this.score += 25;
@@ -643,7 +653,7 @@ export default class GameScene extends Phaser.Scene {
                     this.currentBoss.setVelocityY(0);
                     this.currentBoss.setY(100);
                     this.currentBoss.setX(this.gameWidth / 2); // Reset to center
-                    this.currentBoss.setVelocityX(150); // Start horizontal movement
+                    this.currentBoss.setVelocityX(this.currentBoss.baseMovementSpeed); // Start horizontal movement
                     this.currentBoss.setCollideWorldBounds(true); // Enable world bounds now
                     this.currentBoss.isEntering = false;
                     this.currentBoss.entryTimer.remove();
