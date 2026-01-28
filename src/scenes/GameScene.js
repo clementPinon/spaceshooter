@@ -117,6 +117,15 @@ export default class GameScene extends Phaser.Scene {
             this.scene.launch('PauseScene');
         });
 
+        // Touch controls - track if touch is active
+        this.touchActive = false;
+        this.input.on('pointerdown', () => {
+            this.touchActive = true;
+        });
+        this.input.on('pointerup', () => {
+            this.touchActive = false;
+        });
+
         // Create groups
         this.playerLasers = this.physics.add.group();
         this.enemies = this.physics.add.group();
@@ -231,14 +240,30 @@ export default class GameScene extends Phaser.Scene {
         // Reset velocity
         this.player.setVelocity(0);
 
-        // Horizontal movement
+        // Touch/pointer movement - move toward finger position
+        const pointer = this.input.activePointer;
+        if (this.touchActive && pointer.isDown) {
+            const dx = pointer.worldX - this.player.x;
+            const dy = pointer.worldY - this.player.y;
+            const distance = Math.sqrt(dx * dx + dy * dy);
+
+            // Only move if finger is far enough from ship (dead zone of 10px)
+            if (distance > 10) {
+                // Normalize and apply speed
+                this.player.setVelocityX((dx / distance) * speed);
+                this.player.setVelocityY((dy / distance) * speed);
+            }
+            return; // Touch overrides keyboard
+        }
+
+        // Keyboard: Horizontal movement
         if (this.cursors.left.isDown || this.wasd.left.isDown) {
             this.player.setVelocityX(-speed);
         } else if (this.cursors.right.isDown || this.wasd.right.isDown) {
             this.player.setVelocityX(speed);
         }
 
-        // Vertical movement
+        // Keyboard: Vertical movement
         if (this.cursors.up.isDown || this.wasd.up.isDown) {
             this.player.setVelocityY(-speed);
         } else if (this.cursors.down.isDown || this.wasd.down.isDown) {
