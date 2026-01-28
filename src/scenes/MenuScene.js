@@ -55,8 +55,8 @@ export default class MenuScene extends Phaser.Scene {
         }).setOrigin(0.5);
 
         // Start button
-        const startText = this.add.text(400, 500, 'Press ENTER to Start', {
-            fontSize: '32px',
+        const startText = this.add.text(400, 500, 'Tap or Press ENTER to Start', {
+            fontSize: '28px',
             fill: '#00ff00',
             fontFamily: 'Arial',
             fontStyle: 'bold'
@@ -72,9 +72,12 @@ export default class MenuScene extends Phaser.Scene {
             ease: 'Sine.easeInOut'
         });
 
-        // Input
+        // Keyboard input
         this.enterKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.ENTER);
         this.enterKey.on('down', this.startGame, this);
+
+        // Touch/click input
+        this.input.on('pointerdown', this.startGame, this);
     }
 
     createStarfield() {
