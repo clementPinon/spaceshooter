@@ -117,6 +117,20 @@ export default class GameScene extends Phaser.Scene {
             this.scene.launch('PauseScene');
         });
 
+        // Touch controls
+        this.touchTarget = null;
+        this.input.on('pointerdown', (pointer) => {
+            this.touchTarget = { x: pointer.x, y: pointer.y };
+        });
+        this.input.on('pointermove', (pointer) => {
+            if (pointer.isDown) {
+                this.touchTarget = { x: pointer.x, y: pointer.y };
+            }
+        });
+        this.input.on('pointerup', () => {
+            this.touchTarget = null;
+        });
+
         // Create groups
         this.playerLasers = this.physics.add.group();
         this.enemies = this.physics.add.group();
@@ -231,14 +245,29 @@ export default class GameScene extends Phaser.Scene {
         // Reset velocity
         this.player.setVelocity(0);
 
-        // Horizontal movement
+        // Touch/pointer movement - move toward finger position
+        if (this.touchTarget) {
+            const dx = this.touchTarget.x - this.player.x;
+            const dy = this.touchTarget.y - this.player.y;
+            const distance = Math.sqrt(dx * dx + dy * dy);
+
+            // Only move if finger is far enough from ship (dead zone of 10px)
+            if (distance > 10) {
+                // Normalize and apply speed
+                this.player.setVelocityX((dx / distance) * speed);
+                this.player.setVelocityY((dy / distance) * speed);
+            }
+            return; // Touch overrides keyboard
+        }
+
+        // Keyboard: Horizontal movement
         if (this.cursors.left.isDown || this.wasd.left.isDown) {
             this.player.setVelocityX(-speed);
         } else if (this.cursors.right.isDown || this.wasd.right.isDown) {
             this.player.setVelocityX(speed);
         }
 
-        // Vertical movement
+        // Keyboard: Vertical movement
         if (this.cursors.up.isDown || this.wasd.up.isDown) {
             this.player.setVelocityY(-speed);
         } else if (this.cursors.down.isDown || this.wasd.down.isDown) {
