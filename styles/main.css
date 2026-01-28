@@ -12,6 +12,7 @@ body {
     justify-content: center;
     align-items: center;
     overflow: hidden;
+    touch-action: none; /* Prevent default touch behaviors */
 }
 
 #game-container {
@@ -19,16 +20,33 @@ body {
     flex-direction: column;
     align-items: center;
     padding: 20px;
+    width: 100%;
+    max-width: 800px;
 }
 
 #game {
     border: 3px solid #444;
     border-radius: 8px;
     box-shadow: 0 0 30px rgba(0, 100, 255, 0.5);
+    width: 100%;
+    max-width: 800px;
 }
 
 canvas {
     display: block;
     image-rendering: pixelated;
     image-rendering: crisp-edges;
+    max-width: 100%;
+    height: auto !important;
+}
+
+/* Mobile-specific adjustments */
+@media (max-width: 768px) {
+    #game-container {
+        padding: 10px;
+    }
+
+    #game {
+        border-width: 2px;
+    }
 }
