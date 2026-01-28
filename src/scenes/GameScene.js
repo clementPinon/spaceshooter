@@ -117,18 +117,13 @@ export default class GameScene extends Phaser.Scene {
             this.scene.launch('PauseScene');
         });
 
-        // Touch controls
-        this.touchTarget = null;
-        this.input.on('pointerdown', (pointer) => {
-            this.touchTarget = { x: pointer.x, y: pointer.y };
-        });
-        this.input.on('pointermove', (pointer) => {
-            if (pointer.isDown) {
-                this.touchTarget = { x: pointer.x, y: pointer.y };
-            }
+        // Touch controls - track if touch is active
+        this.touchActive = false;
+        this.input.on('pointerdown', () => {
+            this.touchActive = true;
         });
         this.input.on('pointerup', () => {
-            this.touchTarget = null;
+            this.touchActive = false;
         });
 
         // Create groups
@@ -246,9 +241,10 @@ export default class GameScene extends Phaser.Scene {
         this.player.setVelocity(0);
 
         // Touch/pointer movement - move toward finger position
-        if (this.touchTarget) {
-            const dx = this.touchTarget.x - this.player.x;
-            const dy = this.touchTarget.y - this.player.y;
+        const pointer = this.input.activePointer;
+        if (this.touchActive && pointer.isDown) {
+            const dx = pointer.worldX - this.player.x;
+            const dy = pointer.worldY - this.player.y;
             const distance = Math.sqrt(dx * dx + dy * dy);
 
             // Only move if finger is far enough from ship (dead zone of 10px)
