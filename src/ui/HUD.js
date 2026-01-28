@@ -3,13 +3,14 @@ import { PowerUpType } from '../entities/PowerUp.js';
 export default class HUD {
     constructor(scene) {
         this.scene = scene;
+        this.gameWidth = scene.scale.width;
         this.createHUD();
     }
 
     createHUD() {
         // Score text
         this.scoreText = this.scene.add.text(16, 16, 'Score: 0', {
-            fontSize: '24px',
+            fontSize: '20px',
             fill: '#fff',
             fontFamily: 'Arial',
             fontStyle: 'bold'
@@ -18,8 +19,8 @@ export default class HUD {
         this.scoreText.setDepth(100);
 
         // Wave counter
-        this.waveText = this.scene.add.text(16, 50, 'Wave: 0', {
-            fontSize: '20px',
+        this.waveText = this.scene.add.text(16, 44, 'Wave: 0', {
+            fontSize: '16px',
             fill: '#00ff00',
             fontFamily: 'Arial'
         });
@@ -36,9 +37,10 @@ export default class HUD {
     }
 
     createLifeIcons() {
+        const startX = this.gameWidth - 90;
         for (let i = 0; i < 3; i++) {
-            const icon = this.scene.add.image(730 + (i * 30), 30, 'lifeIcon');
-            icon.setScale(0.4);
+            const icon = this.scene.add.image(startX + (i * 28), 28, 'lifeIcon');
+            icon.setScale(0.35);
             icon.setScrollFactor(0);
             icon.setDepth(100);
             this.lifeIcons.push(icon);

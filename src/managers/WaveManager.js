@@ -1,6 +1,8 @@
 export default class WaveManager {
     constructor(scene) {
         this.scene = scene;
+        this.gameWidth = scene.scale.width;
+        this.gameHeight = scene.scale.height;
         this.currentWave = 0;
         this.enemiesInWave = 0;
         this.enemiesRemaining = 0;
@@ -56,10 +58,10 @@ export default class WaveManager {
 
     showBossWarning() {
         const warningText = this.scene.add.text(
-            400, 300,
+            this.gameWidth / 2, this.gameHeight / 2,
             'WARNING!\nBOSS APPROACHING',
             {
-                fontSize: '48px',
+                fontSize: '32px',
                 fill: '#ff0000',
                 fontFamily: 'Arial',
                 fontStyle: 'bold',
@@ -92,10 +94,10 @@ export default class WaveManager {
 
     showWaveText() {
         const waveText = this.scene.add.text(
-            400, 300,
+            this.gameWidth / 2, this.gameHeight / 2,
             `Wave ${this.currentWave}`,
             {
-                fontSize: '48px',
+                fontSize: '36px',
                 fill: '#00ff00',
                 fontFamily: 'Arial',
                 fontStyle: 'bold'
@@ -139,7 +141,7 @@ export default class WaveManager {
     spawnEnemy() {
         const enemyTypes = ['enemy1', 'enemy2', 'enemy3'];
         const randomType = Phaser.Math.RND.pick(enemyTypes);
-        const x = Phaser.Math.Between(50, 750);
+        const x = Phaser.Math.Between(50, this.gameWidth - 50);
 
         const enemy = this.scene.enemies.create(x, -50, randomType);
 
@@ -182,10 +184,10 @@ export default class WaveManager {
 
         // Show wave complete message
         const completeText = this.scene.add.text(
-            400, 300,
+            this.gameWidth / 2, this.gameHeight / 2,
             'Wave Complete!',
             {
-                fontSize: '36px',
+                fontSize: '28px',
                 fill: '#ffff00',
                 fontFamily: 'Arial',
                 fontStyle: 'bold'
