@@ -95,8 +95,12 @@ export default class GameScene extends Phaser.Scene {
             repeat: 0
         });
 
+        // Get game dimensions
+        this.gameWidth = this.scale.width;
+        this.gameHeight = this.scale.height;
+
         // Create player
-        this.player = this.physics.add.sprite(400, 550, 'player');
+        this.player = this.physics.add.sprite(this.gameWidth / 2, this.gameHeight - 50, 'player');
         this.player.setCollideWorldBounds(true);
         this.player.setScale(0.5);
         this.player.setDepth(15); // Above enemies and meteors
@@ -117,13 +121,32 @@ export default class GameScene extends Phaser.Scene {
             this.scene.launch('PauseScene');
         });
 
-        // Touch controls - track if touch is active
+        // Touch controls - track if touch is active and detect taps for pause
         this.touchActive = false;
-        this.input.on('pointerdown', () => {
+        this.touchStartTime = 0;
+        this.touchStartX = 0;
+        this.touchStartY = 0;
+
+        this.input.on('pointerdown', (pointer) => {
             this.touchActive = true;
+            this.touchStartTime = this.time.now;
+            this.touchStartX = pointer.worldX;
+            this.touchStartY = pointer.worldY;
         });
-        this.input.on('pointerup', () => {
+
+        this.input.on('pointerup', (pointer) => {
             this.touchActive = false;
+            // Check if it was a quick tap (< 300ms) without much movement (< 30px)
+            const tapDuration = this.time.now - this.touchStartTime;
+            const dx = pointer.worldX - this.touchStartX;
+            const dy = pointer.worldY - this.touchStartY;
+            const moveDistance = Math.sqrt(dx * dx + dy * dy);
+
+            if (tapDuration < 300 && moveDistance < 30) {
+                // This is a tap - pause the game
+                this.scene.pause();
+                this.scene.launch('PauseScene');
+            }
         });
 
         // Create groups
@@ -159,10 +182,12 @@ export default class GameScene extends Phaser.Scene {
     createStarfield() {
         // Create scrolling star particles
         this.stars = [];
+        const width = this.scale.width;
+        const height = this.scale.height;
         for (let i = 0; i < 100; i++) {
             const star = this.add.circle(
-                Phaser.Math.Between(0, 800),
-                Phaser.Math.Between(0, 600),
+                Phaser.Math.Between(0, width),
+                Phaser.Math.Between(0, height),
                 Phaser.Math.FloatBetween(0.5, 2),
                 0xffffff,
                 Phaser.Math.FloatBetween(0.3, 0.9)
@@ -225,11 +250,13 @@ export default class GameScene extends Phaser.Scene {
     }
 
     updateStarfield() {
+        const width = this.gameWidth;
+        const height = this.gameHeight;
         this.stars.forEach(star => {
             star.y += star.scrollSpeed;
-            if (star.y > 600) {
+            if (star.y > height) {
                 star.y = 0;
-                star.x = Phaser.Math.Between(0, 800);
+                star.x = Phaser.Math.Between(0, width);
             }
         });
     }
@@ -293,7 +320,7 @@ export default class GameScene extends Phaser.Scene {
     spawnMeteor() {
         const meteorTypes = ['meteorBig1', 'meteorBig2', 'meteorMed1', 'meteorSmall1', 'meteorGrey1', 'meteorGrey2'];
         const randomType = Phaser.Math.RND.pick(meteorTypes);
-        const x = Phaser.Math.Between(50, 750);
+        const x = Phaser.Math.Between(50, this.gameWidth - 50);
 
         // Create meteor in group
         const meteor = this.meteors.create(x, -50, randomType);
@@ -545,6 +572,8 @@ export default class GameScene extends Phaser.Scene {
     }
 
     cleanupOffScreen() {
+        const offscreenY = this.gameHeight + 50;
+
         // Clean up player lasers
         this.playerLasers.children.entries.forEach(laser => {
             if (laser.y < -50) {
@@ -554,14 +583,14 @@ export default class GameScene extends Phaser.Scene {
 
         // Clean up enemy lasers
         this.enemyLasers.children.entries.forEach(laser => {
-            if (laser.y > 650) {
+            if (laser.y > offscreenY) {
                 laser.destroy();
             }
         });
 
         // Clean up enemies
         this.enemies.children.entries.forEach(enemy => {
-            if (enemy.y > 650) {
+            if (enemy.y > offscreenY) {
                 console.log('Enemy cleaned up (went off-screen bottom) at y:', Math.round(enemy.y));
                 enemy.destroy();
                 this.waveManager.enemyDestroyed();
@@ -570,14 +599,14 @@ export default class GameScene extends Phaser.Scene {
 
         // Clean up meteors
         this.meteors.children.entries.forEach(meteor => {
-            if (meteor.y > 650) {
+            if (meteor.y > offscreenY) {
                 meteor.destroy();
             }
         });
 
         // Clean up power-ups
         this.powerUps.children.entries.forEach(powerUp => {
-            if (powerUp.y > 650) {
+            if (powerUp.y > offscreenY) {
                 powerUp.destroy();
             }
         });
@@ -591,7 +620,7 @@ export default class GameScene extends Phaser.Scene {
         if (bossWave >= 3) bossTexture = 'ufoRed';
 
         // Create boss
-        this.currentBoss = new Boss(this, 400, -100, bossTexture);
+        this.currentBoss = new Boss(this, this.gameWidth / 2, -100, bossTexture);
 
         // Ensure boss is visible
         this.currentBoss.setActive(true);
@@ -613,7 +642,7 @@ export default class GameScene extends Phaser.Scene {
                 if (this.currentBoss && this.currentBoss.y >= 100) {
                     this.currentBoss.setVelocityY(0);
                     this.currentBoss.setY(100);
-                    this.currentBoss.setX(400); // Reset to center
+                    this.currentBoss.setX(this.gameWidth / 2); // Reset to center
                     this.currentBoss.setVelocityX(150); // Start horizontal movement
                     this.currentBoss.setCollideWorldBounds(true); // Enable world bounds now
                     this.currentBoss.isEntering = false;
@@ -693,8 +722,8 @@ export default class GameScene extends Phaser.Scene {
                     this.cameras.main.shake(500, 0.02);
 
                     // Show victory message
-                    const victoryText = this.add.text(400, 300, 'BOSS DEFEATED!', {
-                        fontSize: '48px',
+                    const victoryText = this.add.text(this.gameWidth / 2, this.gameHeight / 2, 'BOSS DEFEATED!', {
+                        fontSize: '36px',
                         fill: '#ffff00',
                         fontFamily: 'Arial',
                         fontStyle: 'bold'
