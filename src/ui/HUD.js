@@ -33,22 +33,6 @@ export default class HUD {
         // Power-up display
         this.powerUpTexts = {};
         this.powerUpBars = {};
-
-        // Pause button (for mobile)
-        this.pauseButton = this.scene.add.text(750, 70, '| |', {
-            fontSize: '32px',
-            fill: '#ffffff',
-            fontFamily: 'Arial',
-            fontStyle: 'bold'
-        });
-        this.pauseButton.setOrigin(0.5);
-        this.pauseButton.setScrollFactor(0);
-        this.pauseButton.setDepth(100);
-        this.pauseButton.setInteractive({ useHandCursor: true });
-        this.pauseButton.on('pointerdown', () => {
-            this.scene.scene.pause();
-            this.scene.scene.launch('PauseScene');
-        });
     }
 
     createLifeIcons() {
