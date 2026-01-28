@@ -188,7 +188,8 @@ export default class Boss extends Phaser.Physics.Arcade.Sprite {
         }
 
         // Horizontal movement pattern
-        if (this.x > 750) {
+        const gameWidth = this.scene.sys.game.config.width;
+        if (this.x > gameWidth - 50) {
             this.moveDirection = -1;
             this.setVelocityX(-Math.abs(this.body.velocity.x));
         } else if (this.x < 50) {
