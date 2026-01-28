@@ -643,7 +643,7 @@ export default class GameScene extends Phaser.Scene {
                     this.currentBoss.setVelocityY(0);
                     this.currentBoss.setY(100);
                     this.currentBoss.setX(this.gameWidth / 2); // Reset to center
-                    this.currentBoss.setVelocityX(150); // Start horizontal movement
+                    this.currentBoss.setVelocityX(this.currentBoss.baseMovementSpeed); // Start horizontal movement
                     this.currentBoss.setCollideWorldBounds(true); // Enable world bounds now
                     this.currentBoss.isEntering = false;
                     this.currentBoss.entryTimer.remove();

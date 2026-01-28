@@ -14,27 +14,27 @@ export default class Boss extends Phaser.Physics.Arcade.Sprite {
         this.setDepth(10);
         // Don't set world bounds yet - will be enabled after entry
 
-        // Boss stats - scale health based on which boss this is (wave / 3)
-        // Boss 1 (wave 3): 10 health, Boss 2 (wave 6): 20 health, etc.
+        // Boss stats - scale based on which boss this is (wave / 3)
         const bossNumber = Math.floor(scene.waveManager.getCurrentWave() / 3);
-        this.maxHealth = bossNumber * 10;
+        this.bossNumber = bossNumber;
+        this.maxHealth = 5 + (bossNumber * 5); // Boss 1: 10, Boss 2: 15, Boss 3: 20, etc.
         this.health = this.maxHealth;
         this.phase = 1;
         this.points = 500 + (bossNumber * 200);
 
         console.log('Boss initialized with health:', this.health, '/', this.maxHealth);
 
-        // Movement
+        // Movement - slower for early bosses
         this.moveDirection = 1;
-        // Don't set initial velocity - will be set when entry completes
+        this.baseMovementSpeed = 80 + (bossNumber * 35); // Boss 1: 115, Boss 2: 150, Boss 3: 185
 
         // Random movement patterns for less predictability
-        this.movementPhaseOffset = Math.random() * Math.PI * 2; // Random starting phase for sine waves
-        this.movementSpeedVariation = Phaser.Math.FloatBetween(0.8, 1.2); // Random speed multiplier
+        this.movementPhaseOffset = Math.random() * Math.PI * 2;
+        this.movementSpeedVariation = Phaser.Math.FloatBetween(0.8, 1.2);
 
-        // Shooting
+        // Shooting - slower for early bosses
         this.shootTimer = 0;
-        this.shootInterval = 1000;
+        this.shootInterval = Math.max(600, 1800 - (bossNumber * 300)); // Boss 1: 1500ms, Boss 2: 1200ms, Boss 3: 900ms
 
         // Entry state - disable update until entry animation completes
         this.isEntering = true;
@@ -145,16 +145,17 @@ export default class Boss extends Phaser.Physics.Arcade.Sprite {
             this.scene.cameras.main.shake(300, 0.01);
         }
 
-        // Speed up movement with some randomness
-        const baseSpeed = 150 + (this.phase * 50);
+        // Speed up movement with some randomness, scaling with boss number
+        const baseSpeed = this.baseMovementSpeed + (this.phase * 30);
         const speed = baseSpeed * Phaser.Math.FloatBetween(0.9, 1.1);
         this.setVelocityX(this.moveDirection * speed);
 
         // Update movement variation for next phase
         this.movementSpeedVariation = Phaser.Math.FloatBetween(0.8, 1.2);
 
-        // Faster shooting
-        this.shootInterval = Math.max(500, 1000 - (this.phase * 200));
+        // Faster shooting per phase, scaling with boss number
+        const baseInterval = Math.max(600, 1800 - (this.bossNumber * 300));
+        this.shootInterval = Math.max(400, baseInterval - (this.phase * 150));
 
         // Show phase text
         const phaseText = this.scene.add.text(400, 300, `PHASE ${this.phase}!`, {
@@ -239,8 +240,8 @@ export default class Boss extends Phaser.Physics.Arcade.Sprite {
             this.shootTimer = 0;
         }
 
-        // Spawn support enemies in phase 3
-        if (this.phase === 3) {
+        // Spawn support enemies in phase 3 (boss 2+ only)
+        if (this.phase === 3 && this.bossNumber >= 2) {
             this.supportTimer += delta;
             if (this.supportTimer > this.supportInterval) {
                 this.spawnSupport();
@@ -252,27 +253,35 @@ export default class Boss extends Phaser.Physics.Arcade.Sprite {
     shoot() {
         if (!this.scene || !this.scene.enemyLasers) return;
 
-        if (this.phase === 1) {
-            // Single shot at player
+        const bulletSpeed = 200 + (this.bossNumber * 40); // Boss 1: 240, Boss 2: 280, Boss 3+: 320+
+
+        // Determine effective pattern based on phase AND boss number
+        // Boss 1: only single and double shots
+        // Boss 2: single, triple, triple
+        // Boss 3+: single, triple, five-way
+        const effectivePattern = Math.min(this.phase, this.bossNumber);
+
+        if (effectivePattern <= 1) {
+            // Single shot
             const laser = this.scene.enemyLasers.create(this.x, this.y + 30, 'enemyLaser');
-            laser.setVelocityY(300);
+            laser.setVelocityY(bulletSpeed);
             laser.setScale(0.5);
             laser.setDepth(10);
-        } else if (this.phase === 2) {
+        } else if (effectivePattern === 2) {
             // Triple shot spread
             for (let i = -1; i <= 1; i++) {
                 const laser = this.scene.enemyLasers.create(this.x + (i * 30), this.y + 30, 'enemyLaser');
                 const angle = 90 + (i * 15);
-                this.scene.physics.velocityFromAngle(angle, 300, laser.body.velocity);
+                this.scene.physics.velocityFromAngle(angle, bulletSpeed, laser.body.velocity);
                 laser.setScale(0.5);
                 laser.setDepth(10);
             }
-        } else if (this.phase === 3) {
-            // Five-way spread
+        } else {
+            // Five-way spread (boss 3+ in phase 3)
             for (let i = -2; i <= 2; i++) {
                 const laser = this.scene.enemyLasers.create(this.x + (i * 25), this.y + 30, 'enemyLaser');
                 const angle = 90 + (i * 20);
-                this.scene.physics.velocityFromAngle(angle, 350, laser.body.velocity);
+                this.scene.physics.velocityFromAngle(angle, bulletSpeed + 50, laser.body.velocity);
                 laser.setScale(0.5);
                 laser.setDepth(10);
             }
